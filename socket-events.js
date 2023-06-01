@@ -10,8 +10,10 @@ function initialize(server) {
 
 		socket.on("join", (data) => { // Listen to any join event from connected users
 			socket.join(data.userId); // User joins a unique room/channel that's named after the userId
-			console.log(`User joined room: ${data.userId}`);
+			console.log(`${data.userType} joined room: ${data.userId}`);
 		});
 	})
 
 }
+
+module.exports = { initialize };

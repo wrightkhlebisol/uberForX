@@ -19,4 +19,17 @@ function fetchNearestCops(coordinates, maxDistance){
 	});
 }
 
-exports.fetchNearestCops = fetchNearestCops;
+function fetchCopDetails(userId){
+	return Cop.find({ userId }, {
+			copId: 1,
+			displayName: 1,
+			phone: 1,
+			location: 1
+		})
+		.exec()
+		.catch(err => {
+			console.error(err);
+		})
+}
+
+module.exports = {fetchNearestCops, fetchCopDetails};

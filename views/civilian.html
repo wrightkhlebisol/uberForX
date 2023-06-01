@@ -21,7 +21,7 @@
 			const userId = document.body.getAttribute("data-userId");
 
 			// Fire a 'join' event and send your userId to the server, to join a room - room-name will be the userId!
-			socker.emit("join", {userId});
+			socker.emit("join", {userId, userType: "Civilian"});
 
 			// Declare variables, this will be used later
 			let requestDetails = {};

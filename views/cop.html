@@ -22,7 +22,7 @@
 
                         // Fire a 'join' event and send your userId to the server,
 			//  to join a room - room-name will be the userId!
-                        socket.emit("join", {userId});
+                        socket.emit("join", {userId, userType: "Officer"});
 
                         // Declare variables, this will be used later
                         let requestDetails = {};

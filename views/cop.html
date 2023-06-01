@@ -7,7 +7,8 @@
         <body data-userId="{{userId}}">
                 <h1>Hello Officer {{ userId }}</h1>
 
-                <h4 id="notification">
+                <div id="copDetails"></div>
+		<h4 id="notification">
 
                 </h4>
 
@@ -28,6 +29,28 @@
                         let requestDetails = {};
                         let civilianDetails = {};
                         let map, marker;
-                </script>        
+                </script>
+		<script type="text/javascript">
+			axios.get(`/cops/info?userId=${userId}`)
+				.then(res => {
+					console.log(res.data);
+					copDetails = res.data.copDetails[0];
+					copDetails.location = {
+						address: copDetails.location.address,
+						longitude: copDetails.location.coordinates[0],
+						latitude: copDetails.location.coordinates[1]
+					}
+					document.getElementById("copDetails").innerHTML = `Display Name: ${copDetails.displayName} 
+<br> Address: ${copDetails.location.address}`
+				})
+				.catch(e => console.error(e))
+
+			socket.on("request-for-help", (eventData) => { // Runs once a request-for-help event is gotten
+				requestDetails = eventData;
+
+				// display civilian info
+				document.getElementById("notification").innerHTML = `Civilian ${requestDetails.civilianId} is being attacked by a wilding and needs help!, They're at ${requestDetails.location.address}`;
+			});
+		</script>
 	</body>
 </html>

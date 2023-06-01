@@ -12,6 +12,14 @@ router.get("/cops", async (req, res) => {
 	});
 });
 
+router.get("/cops/info", async (req, res) => {
+	const userId = req.query.userId
+	const copDetails = await dbOperations.fetchCopDetails(userId);
+	res.json({
+		copDetails
+	});
+});
+
 router.get("/civilian.html", async (req, res) => {
 	res.render("civilian.html", {
 		userId: req.query.userId

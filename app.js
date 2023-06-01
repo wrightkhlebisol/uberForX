@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const routes = require("./route");
+const socketEvents = require("./socket-events");
 
 const app = express();
 const DB_CONN_STRING = process.env.DB_CONN_STRING;
@@ -35,4 +36,5 @@ const portNumber = 8000;
 
 server.listen(portNumber, () => {
 	console.log(`Server listening at port ${portNumber}`);
+	socketEvents.initialize(server);
 });

@@ -35,6 +35,15 @@ function initialize(server) {
 				io.sockets.to(nearestCops[i].userId).emit('request-for-help', requestDetails);
 			}
 		});
+
+		socket.on("request-accepted", async (eventData) => {
+			console.log("eventData contains", eventData);
+			const requestId = new mongoose.Types.ObjectId(eventData.requestDetails.requestId);
+
+			await dbOps.updateRequest(requestId, eventData.copDetails.copId, 'engaged');
+			
+			io.sockets.in(eventData.requestDetails.civilianId).emit("request-accepted", eventData.copDetails);
+		})
 	});
 }
 

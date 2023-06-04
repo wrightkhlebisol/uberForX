@@ -11,12 +11,18 @@
 			
 		</h4>
 
+		<button onClick="requestForHelp()">
+			Request For Help
+		</button>
+
 		<div id="map"></div>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 		<script type="text/javascript">
 			const socket = io();
-
+			socket.on("connect", ()=>{
+				console.log(socket.id, "Logging client id", socket.rooms);
+			});
 			// Fetch userId from data-attribute of the body tag
 			const userId = document.body.getAttribute("data-userId");
 
@@ -24,9 +30,21 @@
 			socket.emit("join", {userId, userType: "Civilian"});
 
 			// Declare variables, this will be used later
-			let requestDetails = {};
+			let requestDetails = {
+				civilianId: userId,
+				location: {
+					address: "Indiranagar, Bengaluru, Karnataka, India",
+					latitude: 12.9718915,
+					longitude: 77.64115449999997
+				}
+			};
 			let copDetails = {};
 			let map, marker;
+
+			function requestForHelp(){
+				console.log("Requesting Help");
+				socket.emit("request-for-help", requestDetails);
+			}
 		</script>
 	</body>
 </html>

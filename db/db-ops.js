@@ -1,5 +1,4 @@
-const dataModel = require("./model");
-const Cop = dataModel.Cop;
+const {Cop, Request} = require("./model");
 
 function fetchNearestCops(coordinates, maxDistance){
 	return Cop.find({
@@ -32,4 +31,19 @@ function fetchCopDetails(userId){
 		})
 }
 
-module.exports = {fetchNearestCops, fetchCopDetails};
+function saveRequest(requestId, requestTime, location, civilianId, status){
+	const request = new Request({
+		"_id": requestId,
+		requestTime,
+		location,
+		civilianId,
+		status
+	});
+
+	return request.save()
+		.catch(e => {
+			console.log(error);
+		});
+}
+
+module.exports = {fetchNearestCops, fetchCopDetails, saveRequest};

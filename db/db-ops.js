@@ -46,4 +46,16 @@ function saveRequest(requestId, requestTime, location, civilianId, status){
 		});
 }
 
-module.exports = {fetchNearestCops, fetchCopDetails, saveRequest};
+function updateRequest(issueId, copId, status){
+	return Request.findOneAndUpdate({
+		_id: issueId
+	}, {
+		status, 
+		copId
+	})
+	.catch(err => {
+		console.error(error);
+	});
+}
+
+module.exports = {fetchNearestCops, fetchCopDetails, saveRequest, updateRequest};

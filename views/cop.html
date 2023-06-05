@@ -3,8 +3,13 @@
         <head>
                 <meta charset="utf-8">
                 <title>Officer {{userId}}</title>
-		<link href="https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.css" rel="stylesheet" />
-        </head>
+        	<script src='https://api.mapbox.com/mapbox.js/v3.3.1/mapbox.js'></script>
+		<link href='https://api.mapbox.com/mapbox.js/v3.3.1/mapbox.css' rel='stylesheet' />
+		<style>
+                        body { margin:0; padding:0; }
+                        #map { position:absolute; top:200px; bottom:0; width:100%; }
+                </style>
+	</head>
         <body data-userId="{{userId}}">
                 <h1>Hello Officer {{ userId }}</h1>
 
@@ -22,6 +27,23 @@
                 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
                 <script type="text/javascript">
                         const socket = io();
+                        let requestDetails = {};
+                        let civilianDetails = {};
+                        let map, marker;
+                        
+			L.mapbox.accessToken = "pk.eyJ1IjoicmV3cmlnaHRpbmciLCJhIjoiY2xpaG16N3Y0MGNlZjNxcGkzbmk5aHM1MSJ9.WKNjes56UP2yKnUjCe_7zQ";
+
+                        map = L.mapbox.map("map", "mapbox.streets"); // Load map with default style
+
+                        // Display input box on map
+                        map.addControl(L.mapbox.geocoderControl("mapbox.places", {
+                                autocomplete: true, // suggest places as we type
+                        }).on("select", (data) => { // runs when place is selected
+                                console.log(data); // geocoding results
+                                // Extract address and coordinates from the results and save it
+
+                                marker.setLatLng([data.feature.center[1], data.feature.center[0]]); // set marker to new location
+                        }))
 
                         // Fetch userId from data-attribute of the body tag
                         const userId = document.body.getAttribute("data-userId");
@@ -29,9 +51,6 @@
 			//  to join a room - room-name will be the userId!
                         socket.emit("join", {userId, userType: "Officer"});
                         // Declare variables, this will be used later
-                        let requestDetails = {};
-                        let civilianDetails = {};
-                        let map, marker;
 			
 			axios.get(`/cops/info?userId=${userId}`)
 				.then(res => {
@@ -42,6 +61,8 @@
 						longitude: copDetails.location.coordinates[0],
 						latitude: copDetails.location.coordinates[1]
 					}
+                        		map.setView([copDetails.location.latitude, copDetails.location.longitude], 9); // set to given lat-lng and zoom level
+                        		marker = L.marker([copDetails.location.latitude, copDetails.location.longitude]).addTo(map);
 					document.getElementById("copDetails").innerHTML = `Display Name: ${copDetails.displayName} 
 <br> Address: ${copDetails.location.address}`
 				})
@@ -52,6 +73,16 @@
 				requestDetails = eventData;
 				// display civilian info
 				document.getElementById("notification").innerHTML = `Civilian ${requestDetails.civilianId} is being attacked by a wilding and needs help!, They're at ${requestDetails.location.address}`;
+
+				L.marker([
+					requestDetails.location.latitude,
+					requestDetails.location.longitude
+				], {
+					icon: L.icon({
+						iconUrl: "/images/civilian.png",
+						iconSize: [50, 50]
+					})
+				}).addTo(map)
 			});
 
 			function helpCivilian(){

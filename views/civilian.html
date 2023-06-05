@@ -3,7 +3,12 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Civilian {{userId}}</title>
-		<link href="https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.css" rel="stylesheet" />
+		<script src='https://api.mapbox.com/mapbox.js/v3.3.1/mapbox.js'></script>
+		<link href='https://api.mapbox.com/mapbox.js/v3.3.1/mapbox.css' rel='stylesheet' />
+		<style>
+			body { margin:0; padding:0; }
+			#map { position:absolute; top:200px; bottom:0; width:100%; }
+		</style>
 	</head>
 	<body data-userId="{{userId}}">
 		<h1>Hello Civilian {{ userId }}</h1>
@@ -18,39 +23,66 @@
 
 		<div id="map"></div>
 		<script src="/socket.io/socket.io.js"></script>
-		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-		
 		<script type="text/javascript">
 			const socket = io();
+			let copDetails = {};
+			let map, marker;
+			let requestDetails = {};
+			// Fetch userId from data-attribute of the body tag
+			const userId = document.body.getAttribute("data-userId");
+
+			L.mapbox.accessToken = "pk.eyJ1IjoicmV3cmlnaHRpbmciLCJhIjoiY2xpaG16N3Y0MGNlZjNxcGkzbmk5aHM1MSJ9.WKNjes56UP2yKnUjCe_7zQ";
+
+			map = L.mapbox.map("map", "mapbox.streets"); // Load map with default style
+			map.setView([12.9718915, 77.64115449999997], 9); // set to given lat-lng and zoom level
+			marker = L.marker([12.9718915, 77.64115449999997]).addTo(map);
+
+ 			// Display input box on map
+ 			map.addControl(L.mapbox.geocoderControl("mapbox.places", {
+ 				autocomplete: true,
+			}).on("select", (data) => {
+				console.log(data)
+
+				requestDetails.location = {
+					address: data.feature["place_name"],
+					latitude: data.feature.center[1],
+					longitude: data.feature.center[0]
+				};
+				
+				requestDetails.civilianId = userId;
+
+				console.log(requestDetails, "Request details")
+				marker.setLatLng([data.feature.center[1], data.feature.center[0]]); // set marker to new location
+			}))
+
 			socket.on("connect", ()=>{
 				console.log(socket.id, "Logging client id", socket.rooms);
 			});
-			// Fetch userId from data-attribute of the body tag
-			const userId = document.body.getAttribute("data-userId");
 
 			// Fire a 'join' event and send your userId to the server, to join a room - room-name will be the userId!
 			socket.emit("join", {userId, userType: "Civilian"});
 
 			socket.on("request-accepted", (eventData) => {
 				copDetails = eventData;
+				console.log(copDetails, "cop details");
 
 				document.getElementById("notification").innerHTML = `${copDetails.displayName} is near ${copDetails.location.address} and will be arriving at your location shortly. You can reach them at their mobile ${copDetails.phone}`;
+
+				L.marker(
+				[
+					copDetails.location.latitude,
+					copDetails.location.longitude
+				],
+				{
+					icon: L.icon({
+						iconUrl: "/images/cop.png", // image path
+						iconSize: [60, 28] // in pixels
+					})
+				}).addTo(map);
 			});
 
-			// Declare variables, this will be used later
-			let requestDetails = {
-				civilianId: userId,
-				location: {
-					address: "Indiranagar, Bengaluru, Karnataka, India",
-					latitude: 12.9718915,
-					longitude: 77.64115449999997
-				}
-			};
-			let copDetails = {};
-			let map, marker;
-
 			function requestForHelp(){
-				console.log("Requesting Help");
+				console.log("Requesting Help", requestDetails);
 				socket.emit("request-for-help", requestDetails);
 			}
 		</script>

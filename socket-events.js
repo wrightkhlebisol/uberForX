@@ -20,16 +20,17 @@ function initialize(server) {
 
 			const location = { // convert lati and long to [long, lat]
 				coordinates: [
-					requestDetails.location.longitude,
-					requestDetails.location.latitude
+					requestDetails?.location.longitude,
+					requestDetails?.location.latitude
 				],
-				address: requestDetails.location.address
+				address: requestDetails?.location.address
 			}
 
 			await dbOps.saveRequest(requestId, requestTime, location, requestDetails.civilianId, "waiting");
 
 			const nearestCops = await dbOps.fetchNearestCops(location.coordinates, 2000);
 			requestDetails.requestId = requestId;
+			console.log({nearestCops, requestDetails})
 			for (let i = 0; i < nearestCops.length; i++){
 				console.log("Emiting request help");
 				io.sockets.to(nearestCops[i].userId).emit('request-for-help', requestDetails);
@@ -38,11 +39,12 @@ function initialize(server) {
 
 		socket.on("request-accepted", async (eventData) => {
 			console.log("eventData contains", eventData);
-			const requestId = new mongoose.Types.ObjectId(eventData.requestDetails.requestId);
+			const requestId = new mongoose.Types.ObjectId(eventData.requestDetails?.requestId);
 
 			await dbOps.updateRequest(requestId, eventData.copDetails.copId, 'engaged');
 			
 			io.sockets.in(eventData.requestDetails.civilianId).emit("request-accepted", eventData.copDetails);
+			console.log("request accepted");
 		})
 	});
 }
